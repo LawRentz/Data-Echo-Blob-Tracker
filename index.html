@@ -3,31 +3,18 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Data Echo Blob Tracker</title>
+<title>Interactive Motion Echo — Data Echo (Smooth)</title>
 
 <style>
-  html, body{
+  html,body{
     margin:0;
+    height:100%;
+    background:#000;
     overflow:hidden;
-    background:black;
   }
 
   canvas{
     display:block;
-  }
-
-  button{
-    position:absolute;
-    top:20px;
-    left:20px;
-    z-index:10;
-    font-size:18px;
-    padding:12px 18px;
-    border:none;
-    border-radius:12px;
-    background:white;
-    color:black;
-    font-weight:bold;
   }
 </style>
 
@@ -39,69 +26,55 @@
 <script>
 
 let cam, prevFrame, diffImg, motionLayer, haloLayer;
+
 let threshold = 20;
 
 let blobs = [];
-let prevPos = new Map();
 
-let currentCamera = "user";
-let switchButton;
+let prevPos = new Map();
 
 function setup(){
 
   createCanvas(windowWidth, windowHeight);
 
   pixelDensity(1);
+
   frameRate(60);
 
   colorMode(HSB, 360, 100, 100, 100);
 
-  startCamera();
+  // MAIN / REAR CAMERA ONLY
+  cam = createCapture({
+    video: {
+      facingMode: {
+        ideal: "environment"
+      }
+    },
+    audio: false
+  });
+
+  cam.size(160,120);
+
+  cam.hide();
+
+  prevFrame   = createImage(cam.width, cam.height);
+
+  diffImg     = createImage(cam.width, cam.height);
 
   motionLayer = createGraphics(width, height);
+
   haloLayer   = createGraphics(width, height);
 
   [motionLayer, haloLayer].forEach(l => {
+
     l.colorMode(HSB, 360, 100, 100, 100);
+
     l.clear();
   });
 
   textFont('monospace', 22);
+
   textStyle(BOLD);
-
-  switchButton = createButton("Switch Camera");
-
-  switchButton.mousePressed(switchCamera);
-}
-
-function startCamera(){
-
-  if(cam){
-    cam.remove();
-  }
-
-  cam = createCapture({
-    video:{
-      facingMode: currentCamera
-    },
-    audio:false
-  });
-
-  cam.size(160,120);
-  cam.hide();
-
-  prevFrame = createImage(cam.width, cam.height);
-  diffImg   = createImage(cam.width, cam.height);
-}
-
-function switchCamera(){
-
-  currentCamera =
-    currentCamera === "user"
-    ? "environment"
-    : "user";
-
-  startCamera();
 }
 
 function draw(){
@@ -110,11 +83,8 @@ function draw(){
 
   blobs = [];
 
-  if(!cam || cam.pixels.length <= 0){
-    return;
-  }
-
   cam.loadPixels();
+
   prevFrame.loadPixels();
 
   if(cam.pixels.length > 0 && prevFrame.pixels.length > 0){
@@ -124,6 +94,7 @@ function draw(){
     for(let i = 0; i < cam.pixels.length; i += 4){
 
       let d = dist(
+
         cam.pixels[i],
         cam.pixels[i+1],
         cam.pixels[i+2],
@@ -144,12 +115,15 @@ function draw(){
     diffImg.updatePixels();
 
     motionLayer.fill(0,0,0,16);
+
     motionLayer.noStroke();
+
     motionLayer.rect(0,0,width,height);
 
     motionLayer.push();
 
     motionLayer.translate(width,0);
+
     motionLayer.scale(-1,1);
 
     motionLayer.image(diffImg,0,0,width,height);
@@ -161,6 +135,7 @@ function draw(){
     haloLayer.clear();
 
     let t = millis()/1000;
+
     let pulse = (sin(t * 1.2) + 1) / 2;
 
     for(let b of blobs){
@@ -394,6 +369,7 @@ function flood(x, y, vis, img, w, h){
 
   let minX = x;
   let maxX = x;
+
   let minY = y;
   let maxY = y;
 
@@ -423,9 +399,11 @@ function flood(x, y, vis, img, w, h){
     c++;
 
     minX = min(minX,cx);
+
     maxX = max(maxX,cx);
 
     minY = min(minY,cy);
+
     maxY = max(maxY,cy);
 
     st.push(
@@ -450,6 +428,7 @@ function windowResized(){
   resizeCanvas(windowWidth, windowHeight);
 
   motionLayer = createGraphics(width, height);
+
   haloLayer   = createGraphics(width, height);
 
   [motionLayer, haloLayer].forEach(l => {
