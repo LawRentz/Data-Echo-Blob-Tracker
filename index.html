@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>Interactive Motion Echo — Data Echo (Smooth)</title>
+<title>Data Echo Tracker — External Consciousness Mode</title>
 
 <style>
   html,body{
@@ -26,24 +26,17 @@
 <script>
 
 let cam, prevFrame, diffImg, motionLayer, haloLayer;
-
 let threshold = 20;
-
 let blobs = [];
-
 let prevPos = new Map();
 
 function setup(){
 
   createCanvas(windowWidth, windowHeight);
-
   pixelDensity(1);
-
   frameRate(60);
-
   colorMode(HSB, 360, 100, 100, 100);
 
-  // MAIN / REAR CAMERA ONLY
   cam = createCapture({
     video: {
       facingMode: {
@@ -54,37 +47,28 @@ function setup(){
   });
 
   cam.size(160,120);
-
   cam.hide();
 
   prevFrame   = createImage(cam.width, cam.height);
-
   diffImg     = createImage(cam.width, cam.height);
-
   motionLayer = createGraphics(width, height);
-
   haloLayer   = createGraphics(width, height);
 
   [motionLayer, haloLayer].forEach(l => {
-
     l.colorMode(HSB, 360, 100, 100, 100);
-
     l.clear();
   });
 
   textFont('monospace', 22);
-
   textStyle(BOLD);
 }
 
 function draw(){
 
   background(0);
-
   blobs = [];
 
   cam.loadPixels();
-
   prevFrame.loadPixels();
 
   if(cam.pixels.length > 0 && prevFrame.pixels.length > 0){
@@ -94,11 +78,9 @@ function draw(){
     for(let i = 0; i < cam.pixels.length; i += 4){
 
       let d = dist(
-
         cam.pixels[i],
         cam.pixels[i+1],
         cam.pixels[i+2],
-
         prevFrame.pixels[i],
         prevFrame.pixels[i+1],
         prevFrame.pixels[i+2]
@@ -115,27 +97,17 @@ function draw(){
     diffImg.updatePixels();
 
     motionLayer.fill(0,0,0,16);
-
     motionLayer.noStroke();
-
     motionLayer.rect(0,0,width,height);
 
-    motionLayer.push();
-
-    motionLayer.translate(width,0);
-
-    motionLayer.scale(-1,1);
-
+    // No mirror flip for external/world-facing camera
     motionLayer.image(diffImg,0,0,width,height);
-
-    motionLayer.pop();
 
     blobs = findBlobs(diffImg, cam.width, cam.height);
 
     haloLayer.clear();
 
     let t = millis()/1000;
-
     let pulse = (sin(t * 1.2) + 1) / 2;
 
     for(let b of blobs){
@@ -144,8 +116,8 @@ function draw(){
         (b.minX + b.maxX)/2,
         0,
         cam.width,
-        width,
-        0
+        0,
+        width
       );
 
       let cy = map(
@@ -191,11 +163,9 @@ function draw(){
     push();
 
     tint(255,210);
-
     image(motionLayer,0,0);
 
     blendMode(ADD);
-
     image(haloLayer,0,0);
 
     blendMode(BLEND);
@@ -221,9 +191,7 @@ function draw(){
 function drawHalo(layer, x, y, r, hueVal, pulse, spd){
 
   layer.push();
-
   layer.translate(x,y);
-
   layer.noFill();
 
   for(let i = 0; i < 3; i++){
@@ -274,8 +242,8 @@ function drawTrackers(){
       (b.minX + b.maxX)/2,
       0,
       cam.width,
-      width,
-      0
+      0,
+      width
     );
 
     let cy = map(
@@ -297,9 +265,7 @@ function drawTrackers(){
     let half = side/2;
 
     stroke(0,0,100);
-
     strokeWeight(3);
-
     noFill();
 
     rect(
@@ -311,11 +277,8 @@ function drawTrackers(){
     );
 
     fill(0,0,100);
-
     noStroke();
-
     textAlign(CENTER);
-
     textSize(20);
 
     text(
@@ -329,7 +292,6 @@ function drawTrackers(){
 function findBlobs(img, w, h){
 
   let visited = new Uint8Array(w * h);
-
   img.loadPixels();
 
   let found = [];
@@ -339,7 +301,6 @@ function findBlobs(img, w, h){
     for(let x = 0; x < w; x++){
 
       let idx = x + y * w;
-
       let p = img.pixels[idx * 4];
 
       if(p > 128 && !visited[idx]){
@@ -369,10 +330,8 @@ function flood(x, y, vis, img, w, h){
 
   let minX = x;
   let maxX = x;
-
   let minY = y;
   let maxY = y;
-
   let c = 0;
 
   while(st.length){
@@ -395,15 +354,11 @@ function flood(x, y, vis, img, w, h){
     if(img.pixels[p] <= 128) continue;
 
     vis[idx] = 1;
-
     c++;
 
     minX = min(minX,cx);
-
     maxX = max(maxX,cx);
-
     minY = min(minY,cy);
-
     maxY = max(maxY,cy);
 
     st.push(
@@ -428,11 +383,9 @@ function windowResized(){
   resizeCanvas(windowWidth, windowHeight);
 
   motionLayer = createGraphics(width, height);
-
   haloLayer   = createGraphics(width, height);
 
   [motionLayer, haloLayer].forEach(l => {
-
     l.colorMode(
       HSB,
       360,
@@ -440,7 +393,6 @@ function windowResized(){
       100,
       100
     );
-
     l.clear();
   });
 }
